@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "test-sonic-jitter"
+version = "0.1.0"
+description = "Test script for AWS Nova Sonic jitter issues"
+authors = ["Test User <test@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pipecat-ai = {extras = ["aws-nova-sonic"], version = "^0.0.76"}
+pydub = "^0.25.1"
+python-dotenv = "^1.0.0"
+websockets = "^14.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
