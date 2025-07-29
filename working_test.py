@@ -86,6 +86,9 @@ class AudioRecorder(FrameLogger):
             self.text_content += frame.text
             logger.info(f"💬 Text: {frame.text}")
 
+        else:
+            logger.warning(f"🔍 Unknown frame type: {type(frame).__name__}")
+
     async def _analyze_and_save(self):
         if not self.chunks:
             logger.warning("⚠️ No audio chunks to analyze")
@@ -198,14 +201,17 @@ class AudioRecorder(FrameLogger):
 async def main():
     logger.info("🚀 Working Nova Sonic Test")
     
-    # Get AWS credentials
+    # Get AWS credentials (using working config from pmc-voice-pipecat)
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    region = os.getenv("AWS_REGION", "eu-north-1")
+    # Use the working region from pmc-voice-pipecat
+    region = "eu-north-1"
     
     if not access_key or not secret_key:
         logger.error("❌ Missing AWS credentials")
         return
+    
+    logger.info(f"🌍 Using region: {region} (from working pmc-voice-pipecat config)")
     
     # Load test audio
     try:
@@ -261,17 +267,27 @@ async def main():
         await task.queue_frames([StartFrame()])
         await asyncio.sleep(1)
         
-        # Send context
+        # EXACT WORKING PATTERN FROM PMC-VOICE-PIPECAT:
+        # Step 1: Queue context frame (preparing the conversation)
+        logger.info("🔍 Queueing context frame (EXACT working pattern)...")
+        context_frame_start = time.time()
         await task.queue_frames([context_agg.user().get_context_frame()])
-        await asyncio.sleep(3)
+        context_frame_time = time.time() - context_frame_start
+        logger.info(f"✅ Context frame queued in {context_frame_time:.2f}s")
         
-        # Trigger
-        logger.info("🎯 Triggering...")
+        # Step 2: Trigger assistant response (simulates the "ready" message)
+        logger.info("🔍 Triggering assistant response (EXACT working pattern)...")
+        trigger_start = time.time()
         await llm.trigger_assistant_response()
-        await asyncio.sleep(3)
+        trigger_time = time.time() - trigger_start
+        logger.info(f"✅ Assistant response triggered in {trigger_time:.2f}s")
         
-        # Send audio
-        logger.info("🎤 Sending audio...")
+        # Step 3: Wait for Nova Sonic to process the trigger and be ready for user input
+        logger.info("⏳ Waiting for Nova Sonic to process trigger (simulating user thinking)...")
+        await asyncio.sleep(5)  # Give Nova Sonic time to fully process the trigger
+        
+        # Step 4: NOW send the simulated user voice input
+        logger.info("🎤 Sending simulated user voice input AFTER trigger processing...")
         for i in range(0, len(audio_data), 1600):
             chunk = audio_data[i:i+1600]
             frame = InputAudioRawFrame(audio=chunk, sample_rate=16000, num_channels=1)
